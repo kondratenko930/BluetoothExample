@@ -1,5 +1,6 @@
 package com.example.bluetoothexample.ui.dashboard
 
+import android.app.Activity
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -10,33 +11,46 @@ import com.example.bluetoothexample.model.BTDevice
 import kotlinx.android.synthetic.main.item_bt_device.view.*
 
 
-class BTDevicesAdapter(private val context: Context?, private val list: ArrayList<BTDevice>) :
-        RecyclerView.Adapter<BTDevicesAdapter.BTDeviceViewHolder>() {
+class BTDevicesAdapter(
+    private val context: Context?,
+    private val list: ArrayList<BTDevice>
+    ) : RecyclerView.Adapter<BTDevicesAdapter.ViewHolder>() {
 
-    class BTDeviceViewHolder(private val context: Context?, itemView: View) : RecyclerView.ViewHolder(itemView) {
+    private var clickListener: OnItemBTDeviceClick? = null
+    fun setOnItemClickListener(clickListener: OnItemBTDeviceClick) {
+        this.clickListener = clickListener
+    }
+
+    inner class ViewHolder(private val context: Context?, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+
+        init {
+            if (clickListener != null) {
+                itemView.setOnClickListener(this)
+            }
+        }
 
         fun bind(device: BTDevice) {
-            itemView.setOnClickListener {
-//                val intent = Intent(context, DetailsActivity::class.java)
-//                intent.putExtra(DetailsActivity.EXTRAS_MOVIE_ID, movie.id)
-//                context.startActivity(intent)
-            }
            itemView.bt_name.text  =  device.name
            itemView.bt_mac.text   =  device.mac
+       }
 
+        override fun onClick(v: View?) {
+            if (v != null) {
+                clickListener?.onItemBTDeviceClick(list?.get(adapterPosition))
+            }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BTDeviceViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_bt_device, parent, false)
-        return BTDeviceViewHolder(context, view)
+        return ViewHolder(context, view)
     }
 
     override fun getItemCount(): Int = list.size
 
-    override fun onBindViewHolder(holder: BTDeviceViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(list[position])
-    }
+   }
 
     fun updateData(newList: List<BTDevice>) {
         list.clear()

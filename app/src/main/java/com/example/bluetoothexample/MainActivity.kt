@@ -10,6 +10,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.bluetoothexample.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -34,4 +35,6 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
     }
+
+
 }
