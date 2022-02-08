@@ -7,6 +7,9 @@ plugins {
     id 'dagger.hilt.android.plugin'
 
     id 'kotlin-android-extensions'
+
+    //id 'androidx.navigation.safeargs'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -67,8 +70,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:$lifecycle_version")
 
     // Navigation
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.4.0'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.4.0'
 
     //Room Database
     implementation "androidx.room:room-runtime:$roomVersion"

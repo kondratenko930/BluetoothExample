@@ -11,14 +11,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.bluetoothexample.R
 import com.example.bluetoothexample.databinding.FragmentDashboardBinding
 import com.example.bluetoothexample.model.BTDevice
 import com.example.bluetoothexample.model.Result
@@ -65,11 +68,12 @@ class DashboardFragment : Fragment() {
 
         btDevicesAdapter.setOnItemClickListener(object : OnItemBTDeviceClick{
             override fun onItemBTDeviceClick(get: BTDevice) {
-                    Toast.makeText(
-                    getContext(),
-                    "Clicked: ${get.name}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                //val bundle = bundleOf("macaddress" to get.mac)
+                view?.let {
+                    Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
+                    bundleOf("macaddress" to get.mac))
+                };
+
         }}
         )
 

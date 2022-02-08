@@ -18,6 +18,7 @@ import java.util.*
  * use listener chain: SerialSocket -> SerialService -> UI fragment
  */
 class SerialService : Service(), SerialListener {
+
     internal inner class SerialBinder : Binder() {
         val service: SerialService
             get() = this@SerialService
