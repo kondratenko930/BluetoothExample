@@ -1,10 +1,6 @@
-package com.example.bluetoothexample.SerialService
+package com.example.bluetoothexample.serialservice
 
 import android.Manifest
-import com.example.bluetoothexample.SerialService.SerialListener.*
-import com.example.bluetoothexample.SerialService.SerialListener.*
-import com.example.bluetoothexample.SerialService.SerialListener.*
-import com.example.bluetoothexample.SerialService.SerialListener.*
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.bluetooth.BluetoothSocket
@@ -13,7 +9,6 @@ import android.content.pm.PackageManager
 import kotlin.Throws
 import android.content.IntentFilter
 import android.annotation.SuppressLint
-import com.example.bluetoothexample.SerialService.SerialSocket
 import android.app.Activity
 import android.content.Context
 import android.content.Intent

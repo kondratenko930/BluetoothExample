@@ -1,4 +1,4 @@
-package com.example.bluetoothexample.SerialService
+package com.example.bluetoothexample.serialservice
 
 import com.example.bluetoothexample.BuildConfig
 

@@ -1,4 +1,4 @@
-package com.example.bluetoothexample.SerialService
+package com.example.bluetoothexample.serialservice
 
 import android.content.Intent
 import kotlin.Throws

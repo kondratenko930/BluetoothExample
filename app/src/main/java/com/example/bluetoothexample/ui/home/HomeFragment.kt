@@ -13,12 +13,29 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.bluetoothexample.databinding.FragmentHomeBinding
+import com.example.bluetoothexample.serialservice.SerialListener
+import com.example.bluetoothexample.serialservice.SerialService
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HomeFragment : Fragment(),ServiceConnection {
+class HomeFragment : Fragment(),ServiceConnection, SerialListener {
 
     private var _binding: FragmentHomeBinding? = null
+
+    private enum class Connected {
+        False, Pending, True
+    }
+
+    private val deviceAddress: String? = null
+    private val service: SerialService? = null
+
+    private lateinit var receiveText: TextView
+
+    private val connected = Connected.False
+    private val initialStart = true
+
+
+
 
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
@@ -116,9 +133,9 @@ class HomeFragment : Fragment(),ServiceConnection {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textHome
+        receiveText = binding.textHome
         homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+            receiveText.text = it
         }
         return root
     }
@@ -126,5 +143,21 @@ class HomeFragment : Fragment(),ServiceConnection {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onSerialConnect() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onSerialConnectError(e: Exception?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onSerialRead(data: ByteArray?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onSerialIoError(e: Exception?) {
+        TODO("Not yet implemented")
     }
 }

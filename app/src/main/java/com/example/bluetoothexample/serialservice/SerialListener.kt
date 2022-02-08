@@ -1,4 +1,4 @@
-package com.example.bluetoothexample.SerialService
+package com.example.bluetoothexample.serialservice
 
 import java.lang.Exception
 

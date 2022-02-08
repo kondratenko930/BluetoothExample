@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name="com.example.bluetoothexample.SerialService.SerialService"
+            android:name="com.example.bluetoothexample.serialservice.SerialService"
             android:enabled="true"
             android:exported="false" />
     </application>
