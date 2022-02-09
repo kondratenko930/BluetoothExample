@@ -5,13 +5,12 @@ import com.example.bluetoothexample.data.local.BTDeviceDao
 import com.example.bluetoothexample.model.BTDevice
 import com.example.bluetoothexample.model.BTScan
 import com.example.bluetoothexample.model.BoundedBTDevicesResponse
+import com.example.bluetoothexample.model.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
-import com.example.bluetoothexample.model.Result
-import java.util.HashMap
 
 class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
     suspend fun fetchBoundedBTDevices(): Flow<Result<BoundedBTDevicesResponse>?> {
@@ -47,5 +46,7 @@ class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
             scans,
             "mac address"
         );
+        val error = apiResponse!!["error"] as String?
+        val success = apiResponse["success"] as Int
     }
  }
