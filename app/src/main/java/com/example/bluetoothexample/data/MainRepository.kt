@@ -28,8 +28,7 @@ class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
     private fun fetchBoundedBTDevicesCached(): Result<BoundedBTDevicesResponse>? =
         btdeviceDao.getAll()?.let {
             Result.success(BoundedBTDevicesResponse(it))
-
-    }
+   }
 
     //добавить/удалить устройства
     suspend fun insertDeleteBTDevice (btDevices:ArrayList<BTDevice>) {

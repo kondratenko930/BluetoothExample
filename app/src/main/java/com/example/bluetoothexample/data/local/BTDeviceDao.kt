@@ -2,6 +2,7 @@ package com.example.bluetoothexample.data.local
 
 import androidx.room.*
 import com.example.bluetoothexample.model.BTDevice
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
