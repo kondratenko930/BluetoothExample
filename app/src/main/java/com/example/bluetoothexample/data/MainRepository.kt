@@ -6,10 +6,13 @@ import com.example.bluetoothexample.model.BTDevice
 import com.example.bluetoothexample.model.BTScan
 import com.example.bluetoothexample.model.BoundedBTDevicesResponse
 import com.example.bluetoothexample.model.Result
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
@@ -41,12 +44,20 @@ class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
         btdeviceDao.deleteList(btDevices)
     }
 
+    @DelicateCoroutinesApi
     suspend fun sendScanData(scans:List<BTScan>){
-        val apiResponse: HashMap<String, Any>? = HttpClient().sendScanData(
-            scans,
-            "mac address"
-        );
-        val error = apiResponse!!["error"] as String?
-        val success = apiResponse["success"] as Int
+        GlobalScope.launch(Dispatchers.IO) {
+            val apiResponse: HashMap<String, Any>? = HttpClient().sendScanData(
+                scans,
+                "mac address"
+            );
+            val error = apiResponse!!["error"] as String?
+            val success = apiResponse["success"] as Int
+
+            if (success == 1){
+                //данные сканирования были успешно переданы на сервер.
+                //на клиенте они больше не нужны и их можно удалить
+            }
+        }
     }
  }
