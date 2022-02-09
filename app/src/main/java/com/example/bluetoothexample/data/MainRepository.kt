@@ -31,12 +31,8 @@ class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
 
     //добавить/удалить устройства
     suspend fun insertDeleteBTDevice (btDevices:ArrayList<BTDevice>) {
-        val listMac    = ArrayList<String>()
-        for (device in btDevices) {
-            listMac.add(device.mac)
-        }
-        btdeviceDao.insertBTDevices(btDevices)              //добавить новые подключенные устройства
-        btdeviceDao.deleteBTDevicesNotMacAddress(listMac)   //удалить старые отключенные устройства
+        btdeviceDao.insertBTDevices(btDevices)                                  //добавить новые подключенные устройства
+        btdeviceDao.deleteBTDevicesNotMacAddress(btDevices.map { it.mac })    //удалить старые отключенные устройства
     }
 
 

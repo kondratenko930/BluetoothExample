@@ -137,7 +137,7 @@ class DashboardFragment : Fragment() {
     fun refresh() {
         listDev.clear()
         if (bluetoothAdapter != null) {
-            for (device in bluetoothAdapter!!.bondedDevices) if (device.type != BluetoothDevice.DEVICE_TYPE_LE) {
+              for (device in bluetoothAdapter!!.bondedDevices) if (device.type != BluetoothDevice.DEVICE_TYPE_LE) {
                 //https://developer.android.com/topic/libraries/architecture/coroutines
                 //A LifecycleScopeопределяется для каждого Lifecycleобъекта.
                 // Любая сопрограмма, запущенная в этой области, отменяется при Lifecycleуничтожении.

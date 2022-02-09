@@ -21,7 +21,7 @@ interface BTDeviceDao {
     suspend fun insertBTDevices(devices: ArrayList<BTDevice>)
 
     @Query("DELETE FROM BTDevice WHERE mac NOT IN (:mac)")
-    suspend fun deleteBTDevicesNotMacAddress(mac: ArrayList<String>)
+    suspend fun deleteBTDevicesNotMacAddress(mac: List<String>)
 
 
 
