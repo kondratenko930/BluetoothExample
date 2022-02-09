@@ -14,33 +14,30 @@ import com.example.bluetoothexample.model.Result
 import java.util.HashMap
 
 class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
+
+    //получить устройства
     suspend fun fetchBoundedBTDevices(): Flow<Result<BoundedBTDevicesResponse>?> {
         return flow {
             emit(fetchBoundedBTDevicesCached())
         }.flowOn(Dispatchers.IO)
     }
-
     private fun fetchBoundedBTDevicesCached(): Result<BoundedBTDevicesResponse>? =
         btdeviceDao.getAll()?.let {
             Result.success(BoundedBTDevicesResponse(it))
 
+    }
+
+    //добавить/удалить устройства
+    suspend fun insertDeleteBTDevice (btDevices:ArrayList<BTDevice>) {
+        val listMac    = ArrayList<String>()
+        for (device in btDevices) {
+            listMac.add(device.mac)
         }
-
-    suspend fun insert(btDevice: BTDevice) {
-        btdeviceDao.insert(btDevice)
+        btdeviceDao.insertBTDevices(btDevices)              //добавить новые подключенные устройства
+        btdeviceDao.deleteBTDevicesNotMacAddress(listMac)   //удалить старые отключенные устройства
     }
 
-    suspend fun insertListBTDevices(btDevices:List<BTDevice>) {
-        btdeviceDao.insertAll(btDevices)
-    }
 
-    suspend fun deleteAllBTDevices() {
-        btdeviceDao.deleteAll()
-    }
-
-    suspend fun deleteListBTDevices(btDevices:List<BTDevice>) {
-        btdeviceDao.deleteList(btDevices)
-    }
 
     suspend fun sendScanData(scans:List<BTScan>){
         val apiResponse: HashMap<String, Any>? = HttpClient().sendScanData(

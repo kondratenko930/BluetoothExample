@@ -54,7 +54,7 @@ class BTDevicesAdapter(
 
     fun updateData(newList: List<BTDevice>) {
         list.clear()
-        val sortedList = newList.sortedBy { device -> device.id }
+        val sortedList = newList.sortedBy { device -> device.mac }
         list.addAll(sortedList)
         notifyDataSetChanged()
     }

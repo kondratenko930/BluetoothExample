@@ -31,16 +31,12 @@ class DashboardViewModel @Inject constructor(private val mainRepository: MainRep
         }
     }
 
-    fun deleteAllBTDevices() {
+
+    fun insertDeleteBTDevice(btDevices:ArrayList<BTDevice>) {
         viewModelScope.launch {
-            mainRepository.deleteAllBTDevices()
+            mainRepository.insertDeleteBTDevice(btDevices)
         }
     }
 
-    fun insertAllBTDevices(btDevices:List<BTDevice>) {
-        viewModelScope.launch {
-            mainRepository.insertListBTDevices(btDevices)
-        }
-    }
 
 }

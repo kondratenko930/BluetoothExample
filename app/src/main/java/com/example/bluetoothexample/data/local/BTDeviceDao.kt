@@ -2,13 +2,12 @@ package com.example.bluetoothexample.data.local
 
 import androidx.room.*
 import com.example.bluetoothexample.model.BTDevice
-import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface BTDeviceDao {
 
-    @Query("SELECT * FROM btdevice order by id DESC")
+    @Query("SELECT * FROM btdevice order by mac DESC")
     fun getAll(): List<BTDevice>?
     //fun getAll(): Flow<List<BTDevice>>
 
@@ -18,22 +17,11 @@ interface BTDeviceDao {
     //Также есть режим IGNORE.
     // В этом режиме будет оставлена старая запись и операция вставки не будет выполнена.
     //Более подробно об этих режимах можно прочесть здесь https://sqlite.org/lang_conflict.html
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(devices: List<BTDevice>)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertBTDevices(devices: ArrayList<BTDevice>)
 
-
-    @Query("DELETE FROM BTDevice")
-    suspend fun deleteAll()
-
-    @Delete
-    suspend fun deleteList(devices: List<BTDevice>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(device: BTDevice)
-
-    @Delete
-    suspend fun delete(device: BTDevice)
-
+    @Query("DELETE FROM BTDevice WHERE mac NOT IN (:mac)")
+    suspend fun deleteBTDevicesNotMacAddress(mac: ArrayList<String>)
 
 
 

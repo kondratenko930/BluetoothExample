@@ -41,7 +41,8 @@ class DashboardFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var bluetoothAdapter: BluetoothAdapter? = null
-    private val list = ArrayList<BTDevice>()
+    private val listDev    = ArrayList<BTDevice>()
+
 
     private lateinit var btDevicesAdapter: BTDevicesAdapter
 
@@ -63,7 +64,7 @@ class DashboardFragment : Fragment() {
         rv.layoutManager = layoutManager
         val dividerItemDecoration = DividerItemDecoration(rv.context,layoutManager.orientation)
         rv.addItemDecoration(dividerItemDecoration)
-        btDevicesAdapter = BTDevicesAdapter(getContext(), list)
+        btDevicesAdapter = BTDevicesAdapter(getContext(), listDev)
         rv.adapter = btDevicesAdapter
 
         btDevicesAdapter.setOnItemClickListener(object : OnItemBTDeviceClick{
@@ -105,8 +106,8 @@ class DashboardFragment : Fragment() {
 
             when (result.status) {
                 Result.Status.SUCCESS -> {
-                    result.data?.results?.let { list ->
-                        btDevicesAdapter.updateData(list)
+                    result.data?.results?.let { listDev ->
+                        btDevicesAdapter.updateData(listDev)
                     }
                     loading.visibility = View.GONE
                 }
@@ -131,39 +132,23 @@ class DashboardFragment : Fragment() {
         }.show()
     }
 
-    //НУЖНО ПЕРЕНЕСТИ В ДРУГОЕ МЕСТО!!!! НО КУДА?
-    //В приложении для Android я загружаю данные из базы данных во TableViewвнутренний файл Fragment.
-    // Но когда я перезагружаю, Fragmentон отображает предыдущие данные.
-    // Могу ли я повторно заполнить Fragmentтекущими данными вместо предыдущих?
     //https://qastack.ru/programming/20702333/refresh-fragment-at-reload
     @SuppressLint("MissingPermission")
     fun refresh() {
-        //https://developer.android.com/topic/libraries/architecture/coroutines
-        //A LifecycleScopeопределяется для каждого Lifecycleобъекта.
-        // Любая сопрограмма, запущенная в этой области, отменяется при Lifecycleуничтожении.
-        // Вы можете получить доступ либо через , либо CoroutineScopeк свойствам.
-        // Lifecyclelifecycle.coroutineScopelifecycleOwner.lifecycleScope
-        viewLifecycleOwner.lifecycleScope.launch {
-            dashboardViewModel.deleteAllBTDevices()
-        }
-
-        list.clear()
+        listDev.clear()
         if (bluetoothAdapter != null) {
-            var id =1
             for (device in bluetoothAdapter!!.bondedDevices) if (device.type != BluetoothDevice.DEVICE_TYPE_LE) {
-                list.add(BTDevice(id, device.address, device.name))
-                id++
+                //https://developer.android.com/topic/libraries/architecture/coroutines
+                //A LifecycleScopeопределяется для каждого Lifecycleобъекта.
+                // Любая сопрограмма, запущенная в этой области, отменяется при Lifecycleуничтожении.
+                // Вы можете получить доступ либо через , либо CoroutineScopeк свойствам.
+                // Lifecyclelifecycle.coroutineScopelifecycleOwner.lifecycleScope
+                viewLifecycleOwner.lifecycleScope.launch {
+                    listDev.add(BTDevice(device.address, device.name, 0))
                 }
-            }
-        dashboardViewModel.insertAllBTDevices(list)
-//        Collections.sort(listItems)
-//        { a: BluetoothDevice?, b: BluetoothDevice? ->
-//            de.kai_morich.simple_bluetooth_terminal.DevicesFragment.compareTo(
-//                a,
-//                b
-//            )
-//        }
-        //listAdapter.notifyDataSetChanged()
+             }
+        }
+        dashboardViewModel.insertDeleteBTDevice(listDev)
     }
 
     override fun onResume() {
