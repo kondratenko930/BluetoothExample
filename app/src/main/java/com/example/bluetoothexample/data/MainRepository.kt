@@ -11,13 +11,26 @@ import com.example.bluetoothexample.model.Result
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
+/*
+ https://habr.com/ru/post/568792/
+Аннотация @Singleton говорит Hilt, что наш MainRepository будет привязан к SIngletonComponent,
+то есть к Application. Первый раз, когда где-то будет создаваться MainRepository, он создаст сам экземпляр класса,
+ в последующие разы будет доставаться тот же самый, созданный в 1 раз MainRepository.
+https://developer.android.com/training/dependency-injection/hilt-jetpack
+ If a single instance needs to be shared across various ViewModels,
+ then it should be scoped using either @ActivityRetainedScoped or @Singleton.
+ */
 class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
+
+
+    val devicesFlow: Flow<List<BTDevice>>
+        get() = btdeviceDao.getAllFlow()
 
     //получить устройства
     suspend fun fetchBoundedBTDevices(): Flow<Result<BoundedBTDevicesResponse>?> {
@@ -28,7 +41,20 @@ class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
     private fun fetchBoundedBTDevicesCached(): Result<BoundedBTDevicesResponse>? =
         btdeviceDao.getAll()?.let {
             Result.success(BoundedBTDevicesResponse(it))
-   }
+    }
+
+
+    //получить устройства2
+    suspend fun fetchBoundedBTDevices2(): Flow<Result<BoundedBTDevicesResponse>?> {
+        return flow {
+            emit(fetchBoundedBTDevicesCached2())
+        }.flowOn(Dispatchers.IO)
+    }
+    private suspend fun fetchBoundedBTDevicesCached2(): Result<BoundedBTDevicesResponse>? =
+        btdeviceDao.getAllFlow().first().toList()?.let {
+            Result.success(BoundedBTDevicesResponse(it))
+        }
+
 
     //добавить/удалить устройства
     suspend fun insertDeleteBTDevice (btDevices:ArrayList<BTDevice>) {

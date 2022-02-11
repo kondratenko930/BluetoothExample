@@ -8,18 +8,6 @@
     android:id="@+id/vParent"
     tools:context=".ui.dashboard.DashboardFragment">
 
-<!--    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout-->
-<!--        xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--        xmlns:tools="http://schemas.android.com/tools"-->
-<!--        android:id="@+id/swipeRefreshLayout"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        tools:context=".MainActivity"/>-->
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBoundedBTDevices"
         android:layout_width="0dp"
@@ -28,7 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar
         android:id="@+id/loading"
@@ -42,7 +29,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.3" />
+        app:layout_constraintVertical_bias="0.3"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

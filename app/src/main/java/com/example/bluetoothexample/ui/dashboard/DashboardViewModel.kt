@@ -1,8 +1,6 @@
 package com.example.bluetoothexample.ui.dashboard
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.bluetoothexample.data.MainRepository
 import com.example.bluetoothexample.model.BTDevice
 import com.example.bluetoothexample.model.BoundedBTDevicesResponse
@@ -12,6 +10,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import com.example.bluetoothexample.model.Result
+import kotlinx.coroutines.flow.flatMapLatest
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(private val mainRepository: MainRepository) : ViewModel() {
@@ -19,18 +18,21 @@ class DashboardViewModel @Inject constructor(private val mainRepository: MainRep
     private val _boundedBTDevices_List = MutableLiveData<Result<BoundedBTDevicesResponse>>()
     val boundedBTDevices_List = _boundedBTDevices_List
 
+
+    val devicesUsingFlow: LiveData<List<BTDevice>> = mainRepository.devicesFlow.asLiveData()
+
+
     init {
-        fetchBoundedBTDevices()
+        fetchBoundedBTDevices2()
     }
 
-    private fun fetchBoundedBTDevices() {
+    private fun fetchBoundedBTDevices2() {
         viewModelScope.launch {
-            mainRepository.fetchBoundedBTDevices().collect {
+            mainRepository.fetchBoundedBTDevices2().collect {
                 _boundedBTDevices_List.value = it
             }
         }
     }
-
 
     fun insertDeleteBTDevice(btDevices:ArrayList<BTDevice>) {
         viewModelScope.launch {

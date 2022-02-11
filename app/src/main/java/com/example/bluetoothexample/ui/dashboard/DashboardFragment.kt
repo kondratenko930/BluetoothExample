@@ -30,21 +30,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_dashboard.*
 import kotlinx.coroutines.launch
 
-
 @AndroidEntryPoint
 class DashboardFragment : Fragment() {
 
-
-
-    private var _binding: FragmentDashboardBinding? = null
-    // This property is only valid between onCreateView and  onDestroyView.
-    private val binding get() = _binding!!
-
     private var bluetoothAdapter: BluetoothAdapter? = null
-    private val listDev    = ArrayList<BTDevice>()
-
-
-    private lateinit var btDevicesAdapter: BTDevicesAdapter
+    private val listDev                             = ArrayList<BTDevice>()
 
     private val dashboardViewModel by viewModels<DashboardViewModel>()
 
@@ -54,60 +44,75 @@ class DashboardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        val binding                  = FragmentDashboardBinding.inflate(inflater, container, false)
+        val rv: RecyclerView        = binding.rvBoundedBTDevices
+        val layoutManager           = LinearLayoutManager(getContext())
 
-        val rv: RecyclerView       = binding.rvBoundedBTDevices
-        val sr: SwipeRefreshLayout = binding.swipeRefreshLayout
-
-        val layoutManager = LinearLayoutManager(getContext())
-        rv.layoutManager = layoutManager
-        val dividerItemDecoration = DividerItemDecoration(rv.context,layoutManager.orientation)
+        rv.layoutManager            = layoutManager
+        val dividerItemDecoration   = DividerItemDecoration(rv.context,layoutManager.orientation)
         rv.addItemDecoration(dividerItemDecoration)
-        btDevicesAdapter = BTDevicesAdapter(getContext(), listDev)
-        rv.adapter = btDevicesAdapter
 
-        btDevicesAdapter.setOnItemClickListener(object : OnItemBTDeviceClick{
+        val adapter                         = BTDevicesAdapter(getContext(), listDev)
+        binding.rvBoundedBTDevices.adapter  = adapter
+        subscribeUiFlow(adapter)
+
+        //программно перейти на HomeFragment с параметром macaddress
+        adapter.setOnItemClickListener(object : OnItemBTDeviceClick{
             override fun onItemBTDeviceClick(get: BTDevice) {
-                //val bundle = bundleOf("macaddress" to get.mac)
                 view?.let {
                     Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
                     bundleOf("macaddress" to get.mac))
                 };
-
-        }}
-        )
-
-        sr.setOnRefreshListener {
-            sr.isRefreshing = false
-            refresh()
-        }
-
-        subscribeUi()
-
-        return root
+        }})
+        refreshDevices()
+        subscribeUi(adapter)
+        //subscribeUiFlow(adapter)
+        setHasOptionsMenu(true)
+        return binding.root
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-
-        if (requireActivity().packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
+       if (requireActivity().packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
             val bluetoothManager =requireContext().getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             bluetoothAdapter=bluetoothManager.getAdapter()
+       }
+   }
+
+    private fun subscribeUiFlow(adapter: BTDevicesAdapter) {
+        dashboardViewModel.devicesUsingFlow.observe(viewLifecycleOwner) { devices ->
+            adapter.updateData(devices)
         }
+    }
 
+    @SuppressLint("MissingPermission")
+    fun refreshDevices() {
+        listDev.clear()
+        if (bluetoothAdapter != null) {
+             for (device in bluetoothAdapter!!.bondedDevices) if (device.type != BluetoothDevice.DEVICE_TYPE_LE) {
+                  listDev.add(BTDevice(device.address, device.name, 0))
+             }
+        }
+        dashboardViewModel.insertDeleteBTDevice(listDev)
+    }
 
+    override fun onResume() {
+        super.onResume()
+//       if (bluetoothAdapter == null)
+//            //setEmptyText("<bluetooth not supported>") else if (!bluetoothAdapter!!.isEnabled) setEmptyText(
+//            //"<bluetooth is disabled>"
+//        ) else
+//            //setEmptyText("<no bluetooth devices found>")
+        refreshDevices()
     }
 
 
-    private fun subscribeUi() {
+    private fun subscribeUi(adapter: BTDevicesAdapter) {
         dashboardViewModel.boundedBTDevices_List.observe(viewLifecycleOwner, Observer { result ->
-
             when (result.status) {
                 Result.Status.SUCCESS -> {
-                    result.data?.results?.let { listDev ->
-                        btDevicesAdapter.updateData(listDev)
+                    result.data?.results?.let { list ->
+                        adapter.updateData(list)
                     }
                     loading.visibility = View.GONE
                 }
@@ -132,41 +137,6 @@ class DashboardFragment : Fragment() {
         }.show()
     }
 
-    //https://qastack.ru/programming/20702333/refresh-fragment-at-reload
-    @SuppressLint("MissingPermission")
-    fun refresh() {
-        listDev.clear()
-        if (bluetoothAdapter != null) {
-              for (device in bluetoothAdapter!!.bondedDevices) if (device.type != BluetoothDevice.DEVICE_TYPE_LE) {
-                //https://developer.android.com/topic/libraries/architecture/coroutines
-                //A LifecycleScopeопределяется для каждого Lifecycleобъекта.
-                // Любая сопрограмма, запущенная в этой области, отменяется при Lifecycleуничтожении.
-                // Вы можете получить доступ либо через , либо CoroutineScopeк свойствам.
-                // Lifecyclelifecycle.coroutineScopelifecycleOwner.lifecycleScope
-                viewLifecycleOwner.lifecycleScope.launch {
-                    listDev.add(BTDevice(device.address, device.name, 0))
-                }
-             }
-        }
-        dashboardViewModel.insertDeleteBTDevice(listDev)
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        if (bluetoothAdapter == null)
-//            //setEmptyText("<bluetooth not supported>") else if (!bluetoothAdapter!!.isEnabled) setEmptyText(
-//            //"<bluetooth is disabled>"
-//        ) else
-//            //setEmptyText("<no bluetooth devices found>")
-        refresh()
-    }
-
-
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 
 
 }

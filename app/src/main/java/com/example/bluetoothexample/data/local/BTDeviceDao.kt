@@ -2,6 +2,7 @@ package com.example.bluetoothexample.data.local
 
 import androidx.room.*
 import com.example.bluetoothexample.model.BTDevice
+import com.example.bluetoothexample.model.BoundedBTDevicesResponse
 import kotlinx.coroutines.flow.Flow
 
 
@@ -10,7 +11,11 @@ interface BTDeviceDao {
 
     @Query("SELECT * FROM btdevice order by mac DESC")
     fun getAll(): List<BTDevice>?
-    //fun getAll(): Flow<List<BTDevice>>
+
+    @Query("SELECT * FROM btdevice order by mac DESC")
+    fun getAllFlow(): Flow<List<BTDevice>>
+
+
 
     //В режиме REPLACE старая запись будет заменена новой.
     // Этот режим хорошо подходит, если вам надо вставить запись,
