@@ -29,29 +29,8 @@ https://developer.android.com/training/dependency-injection/hilt-jetpack
 class MainRepository @Inject constructor(private val btdeviceDao: BTDeviceDao) {
 
 
-    val devicesFlow: Flow<List<BTDevice>>
-        get() = btdeviceDao.getAllFlow()
-
-    //получить устройства
-    suspend fun fetchBoundedBTDevices(): Flow<Result<BoundedBTDevicesResponse>?> {
-        return flow {
-            emit(fetchBoundedBTDevicesCached())
-        }.flowOn(Dispatchers.IO)
-    }
-    private fun fetchBoundedBTDevicesCached(): Result<BoundedBTDevicesResponse>? =
-        btdeviceDao.getAll()?.let {
-            Result.success(BoundedBTDevicesResponse(it))
-    }
-
-
-    //получить устройства2
-    suspend fun fetchBoundedBTDevices2(): Flow<Result<BoundedBTDevicesResponse>?> {
-        return flow {
-            emit(fetchBoundedBTDevicesCached2())
-        }.flowOn(Dispatchers.IO)
-    }
-    private suspend fun fetchBoundedBTDevicesCached2(): Result<BoundedBTDevicesResponse>? =
-        btdeviceDao.getAllFlow().first().toList()?.let {
+    val devicesFlow: Flow<Result<BoundedBTDevicesResponse>>
+        get()=btdeviceDao.getAllFlow().map {
             Result.success(BoundedBTDevicesResponse(it))
         }
 

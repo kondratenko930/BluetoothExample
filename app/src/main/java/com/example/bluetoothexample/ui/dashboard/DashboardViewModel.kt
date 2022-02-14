@@ -10,29 +10,23 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import com.example.bluetoothexample.model.Result
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(private val mainRepository: MainRepository) : ViewModel() {
+    //var devicesUsingFlow2: LiveData<Result<BoundedBTDevicesResponse>>? = null
 
-    private val _boundedBTDevices_List = MutableLiveData<Result<BoundedBTDevicesResponse>>()
-    val boundedBTDevices_List = _boundedBTDevices_List
+    val devicesUsingFlow: LiveData<Result<BoundedBTDevicesResponse>> = mainRepository.devicesFlow.asLiveData()
 
-
-    val devicesUsingFlow: LiveData<List<BTDevice>> = mainRepository.devicesFlow.asLiveData()
-
-
-    init {
-        fetchBoundedBTDevices2()
-    }
-
-    private fun fetchBoundedBTDevices2() {
-        viewModelScope.launch {
-            mainRepository.fetchBoundedBTDevices2().collect {
-                _boundedBTDevices_List.value = it
-            }
-        }
-    }
+//    init {
+//        getDevices()
+//    }
+//    fun getDevices(): LiveData<Result<BoundedBTDevicesResponse>> {
+//        val devicesUsingFlow: LiveData<Result<BoundedBTDevicesResponse>> = mainRepository.devicesFlow.asLiveData()
+//        devicesUsingFlow2 = devicesUsingFlow
+//        return devicesUsingFlow
+//    }
 
     fun insertDeleteBTDevice(btDevices:ArrayList<BTDevice>) {
         viewModelScope.launch {

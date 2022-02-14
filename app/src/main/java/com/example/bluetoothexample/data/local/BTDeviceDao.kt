@@ -10,12 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface BTDeviceDao {
 
     @Query("SELECT * FROM btdevice order by mac DESC")
-    fun getAll(): List<BTDevice>?
-
-    @Query("SELECT * FROM btdevice order by mac DESC")
     fun getAllFlow(): Flow<List<BTDevice>>
-
-
 
     //В режиме REPLACE старая запись будет заменена новой.
     // Этот режим хорошо подходит, если вам надо вставить запись,

@@ -54,19 +54,17 @@ class DashboardFragment : Fragment() {
 
         val adapter                         = BTDevicesAdapter(getContext(), listDev)
         binding.rvBoundedBTDevices.adapter  = adapter
-        subscribeUiFlow(adapter)
 
         //программно перейти на HomeFragment с параметром macaddress
         adapter.setOnItemClickListener(object : OnItemBTDeviceClick{
             override fun onItemBTDeviceClick(get: BTDevice) {
                 view?.let {
-                    Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
-                    bundleOf("macaddress" to get.mac))
+//                    Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
+//                    bundleOf("macaddress" to get.mac))
                 };
         }})
         refreshDevices()
         subscribeUi(adapter)
-        //subscribeUiFlow(adapter)
         setHasOptionsMenu(true)
         return binding.root
     }
@@ -79,11 +77,6 @@ class DashboardFragment : Fragment() {
        }
    }
 
-    private fun subscribeUiFlow(adapter: BTDevicesAdapter) {
-        dashboardViewModel.devicesUsingFlow.observe(viewLifecycleOwner) { devices ->
-            adapter.updateData(devices)
-        }
-    }
 
     @SuppressLint("MissingPermission")
     fun refreshDevices() {
@@ -106,9 +99,8 @@ class DashboardFragment : Fragment() {
         refreshDevices()
     }
 
-
     private fun subscribeUi(adapter: BTDevicesAdapter) {
-        dashboardViewModel.boundedBTDevices_List.observe(viewLifecycleOwner, Observer { result ->
+        dashboardViewModel.devicesUsingFlow.observe(viewLifecycleOwner, Observer { result ->
             when (result.status) {
                 Result.Status.SUCCESS -> {
                     result.data?.results?.let { list ->
@@ -131,6 +123,7 @@ class DashboardFragment : Fragment() {
 
         })
     }
+
 
     private fun showError(msg: String) {
         Snackbar.make(vParent, msg, Snackbar.LENGTH_INDEFINITE).setAction("DISMISS") {
