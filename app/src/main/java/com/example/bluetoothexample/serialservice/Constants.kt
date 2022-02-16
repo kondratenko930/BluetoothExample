@@ -4,7 +4,9 @@ import com.example.bluetoothexample.BuildConfig
 
 internal object Constants {
     // values have to be globally unique
-    const val INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect"
+    const val INTENT_ACTION_SENT = BuildConfig.APPLICATION_ID + ".Sent"
+    const val INTENT_ACTION_START_SERVICE = BuildConfig.APPLICATION_ID + ".StartService"
+
     const val NOTIFICATION_CHANNEL = BuildConfig.APPLICATION_ID + ".Channel"
     const val INTENT_CLASS_MAIN_ACTIVITY = BuildConfig.APPLICATION_ID + ".MainActivity"
 

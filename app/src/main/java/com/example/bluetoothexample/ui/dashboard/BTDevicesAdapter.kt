@@ -21,7 +21,14 @@ class BTDevicesAdapter(
         this.clickListener = clickListener
     }
 
-    inner class ViewHolder(private val context: Context?, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    private var clickLongListener: OnItemBTDeviceLongClick? = null
+    fun setOnItemClickLongListener(clickLongListener: OnItemBTDeviceLongClick) {
+        this.clickLongListener = clickLongListener
+    }
+
+
+
+    inner class ViewHolder(private val context: Context?, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener,View.OnLongClickListener {
 
         init {
             if (clickListener != null) {
@@ -38,6 +45,13 @@ class BTDevicesAdapter(
             if (v != null) {
                 clickListener?.onItemBTDeviceClick(list?.get(adapterPosition))
             }
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            if (v != null) {
+                clickLongListener?.onItemBTDeviceLongClick(list?.get(adapterPosition))
+            }
+            return true
         }
     }
 

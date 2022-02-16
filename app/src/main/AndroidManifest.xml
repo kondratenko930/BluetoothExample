@@ -33,7 +33,9 @@
         <service
             android:name="com.example.bluetoothexample.serialservice.SerialService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:stopWithTask="true"
+            />
     </application>
 
 </manifest>

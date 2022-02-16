@@ -5,30 +5,29 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.bluetoothexample.R
+import com.example.bluetoothexample.BuildConfig
 import com.example.bluetoothexample.databinding.FragmentDashboardBinding
 import com.example.bluetoothexample.model.BTDevice
 import com.example.bluetoothexample.model.Result
+import com.example.bluetoothexample.serialservice.Constants
+import com.example.bluetoothexample.serialservice.SerialService
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_dashboard.*
-import kotlinx.coroutines.launch
+
 
 @AndroidEntryPoint
 class DashboardFragment : Fragment() {
@@ -61,8 +60,24 @@ class DashboardFragment : Fragment() {
                 view?.let {
 //                    Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
 //                    bundleOf("macaddress" to get.mac))
+                    val serviceIntent = Intent(getActivity(),SerialService::class.java)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        serviceIntent.putExtra(Constants.INTENT_ACTION_START_SERVICE, "Старт сервис")
+                        activity!!.startForegroundService(serviceIntent)
+                    } else {
+                         activity!!.startService(serviceIntent)
+                    }
                 };
         }})
+
+        adapter.setOnItemClickLongListener(object : OnItemBTDeviceLongClick{
+            override fun onItemBTDeviceLongClick(get: BTDevice) {
+                view?.let {
+                  val intent = Intent(getActivity(),SerialService::class.java)
+                    activity!!.stopService(intent)
+                 };
+            }})
+
         refreshDevices()
         subscribeUi(adapter)
         setHasOptionsMenu(true)
@@ -130,6 +145,9 @@ class DashboardFragment : Fragment() {
         }.show()
     }
 
-
+    companion object{
+        const val  ACTION_START_FOREGROUND = "${BuildConfig.APPLICATION_ID}.startforeground"
+        const val  ACTION_STOP_FOREGROUND = "${BuildConfig.APPLICATION_ID}.stopforeground"
+    }
 
 }

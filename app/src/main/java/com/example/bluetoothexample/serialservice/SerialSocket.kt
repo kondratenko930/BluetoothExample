@@ -59,7 +59,7 @@ class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
         this.listener = listener
         context.registerReceiver(
             disconnectBroadcastReceiver,
-            IntentFilter(Constants.INTENT_ACTION_DISCONNECT)
+            IntentFilter(Constants.INTENT_ACTION_SENT)
         )
         Executors.newSingleThreadExecutor().submit(this)
     }
