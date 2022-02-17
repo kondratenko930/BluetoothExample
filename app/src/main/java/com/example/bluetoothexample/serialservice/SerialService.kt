@@ -1,12 +1,20 @@
 package com.example.bluetoothexample.serialservice
 
 import android.app.*
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.bluetoothexample.R
+import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_DISABLE_DEVICE
+import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_SENT_DATA_TO_SERVER
+import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_START_FOREGROUND_SERVICE
+import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_STOP_FOREGROUND_SERVICE
+
 
 /**
  * create notification and queue serial data while activity is not in the foreground
@@ -15,36 +23,50 @@ import com.example.bluetoothexample.R
 class SerialService : Service() {
     //, SerialListener {
 
-    private val TAG_FOREGROUND_SERVICE  = "FOREGROUND_SERVICE"
-    val ACTION_START_FOREGROUND_SERVICE = "ACTION_START_FOREGROUND_SERVICE"
-    val ACTION_STOP_FOREGROUND_SERVICE  = "ACTION_STOP_FOREGROUND_SERVICE"
-    val ACTION_PAUSE                    = "ACTION_PAUSE"
-    val ACTION_PLAY                     = "ACTION_PLAY"
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        println("onTaskRemoved called")
-        super.onTaskRemoved(rootIntent)
-        //do something you want
-        //stop service
-        this.stopSelf()
+    //0.тестовый обработчик action notification
+    private fun showSuccessfulBroadcast(text:String) {
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+    }
+    //1.notification action: отправка данных на сервер...
+    private val sentDataToServerReceiver: SentDataToServerReceiver by lazy { SentDataToServerReceiver() }
+    inner class SentDataToServerReceiver : BroadcastReceiver() {
+       override fun onReceive(context: Context, intent: Intent) {
+           intent.action?.let{
+                  ACTION_SENT_DATA_TO_SERVER-> showSuccessfulBroadcast("Отправка данных на сервер...")
+           }
+        }
+    }
+    //2.notification action: отключение устройства (остановка сервиса)...
+    private val disableDeviceReceiver: DisableDeviceReceiver by lazy { DisableDeviceReceiver() }
+    inner class DisableDeviceReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            intent.action?.let{
+                 ACTION_DISABLE_DEVICE->stopForegroundService()
+                showSuccessfulBroadcast("Отключение устройства...")
+            }
+        }
     }
 
+    //пока ничего не биндим
     override fun onBind(p0: Intent?): IBinder? {
-        TODO("Not yet implemented")
+        //TODO("Not yet implemented")
+        return null
     }
+
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG_FOREGROUND_SERVICE, "My foreground service onCreate().")
+        registerReceiver(sentDataToServerReceiver, IntentFilter(ACTION_SENT_DATA_TO_SERVER))
+        registerReceiver(disableDeviceReceiver, IntentFilter(ACTION_DISABLE_DEVICE))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG_FOREGROUND_SERVICE, "My foreground service onDestroy().")
+        unregisterReceiver(sentDataToServerReceiver)
+        unregisterReceiver(disableDeviceReceiver)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val input = intent?.getStringExtra(Constants.INTENT_ACTION_START_SERVICE)
+    private fun startForegroundService() {
         //0.
         //Android O: Как использовать каналы уведомлений
         //https://code.tutsplus.com/ru/tutorials/android-o-how-to-use-notification-channels--cms-28616
@@ -59,8 +81,11 @@ class SerialService : Service() {
         //1.
         //Всё о PendingIntents
         //https://habr.com/ru/company/otus/blog/560492/
-        val sentIntent        = Intent().setAction(Constants.INTENT_ACTION_SENT)
+        val sentIntent        = Intent().setAction(ACTION_SENT_DATA_TO_SERVER)
         val sentPendingIntent = PendingIntent.getBroadcast(this, 1, sentIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val disableIntent        = Intent().setAction(ACTION_DISABLE_DEVICE)
+        val disablePendingIntent = PendingIntent.getBroadcast(this, 1, disableIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val restartIntent = Intent()
             .setClassName(this, Constants.INTENT_CLASS_MAIN_ACTIVITY)
@@ -68,31 +93,57 @@ class SerialService : Service() {
             .addCategory(Intent.CATEGORY_LAUNCHER)
         val restartPendingIntent =
             PendingIntent.getActivity(this, 1, restartIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
         //2.
         val notification: Notification = NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL)
             .setSmallIcon(R.mipmap.barcode_scanner)
             .setColor(resources.getColor(R.color.colorPrimary))
-            .setContentTitle(getText(R.string.app_name))
-            .setContentText(input.toString())
+            .setContentTitle("Наименование устройства")
+            .setContentText("Сканировано: 0")
             .setContentIntent(restartPendingIntent)
-            .setTicker(getText(R.string.title_devices))
-            .setOngoing(true)
-           .addAction(
+            .addAction(
                 NotificationCompat.Action(
                     R.mipmap.barcode_scanner,
-                    "Отправить",
+                    "Отправить данные на сервер",
                     sentPendingIntent
+                )
+            )
+            .addAction(
+                NotificationCompat.Action(
+                    R.mipmap.barcode_scanner,
+                    "Отключить устройство",
+                    disablePendingIntent
                 )
             )
             .build()
 
         //3.
         startForeground(1, notification)
-        //4.
+    }
+
+    private fun stopForegroundService() {
+        stopForeground(true)
+        stopSelf()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
+//        if (intent?.action.equals(ACTION_START_FOREGROUND)) {
+//            startForegroundService()
+//        }
+//        else if  (intent?.action.equals(ACTION_STOP_FOREGROUND_SERVICE)) {
+//            stopForegroundService()
+//        }
+        when (intent?.action) {
+            ACTION_STOP_FOREGROUND_SERVICE   -> stopForegroundService()
+            ACTION_START_FOREGROUND_SERVICE  -> startForegroundService()
+            else -> return START_NOT_STICKY
+        }
         /*Service.START_STICKY перезапустится, если по какой-либо причине работа системы Android завершится.
-        Service.START_NOT_STICKY будет работать до тех пор, пока не появятся незавершенные работы.
-        Service.START_REDELIVER_INTENT похож на Service.START_STICKY, но исходное намерение повторно доставляется методу onStartCommand.
-        */
+       Service.START_NOT_STICKY будет работать до тех пор, пока не появятся незавершенные работы.
+       Service.START_REDELIVER_INTENT похож на Service.START_STICKY, но исходное намерение повторно доставляется методу onStartCommand.
+       */
         return START_STICKY
     }
 

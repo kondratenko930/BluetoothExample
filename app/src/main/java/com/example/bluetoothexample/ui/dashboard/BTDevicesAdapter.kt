@@ -16,6 +16,8 @@ class BTDevicesAdapter(
     private val list: ArrayList<BTDevice>
     ) : RecyclerView.Adapter<BTDevicesAdapter.ViewHolder>() {
 
+
+
     private var clickListener: OnItemBTDeviceClick? = null
     fun setOnItemClickListener(clickListener: OnItemBTDeviceClick) {
         this.clickListener = clickListener
@@ -31,10 +33,18 @@ class BTDevicesAdapter(
     inner class ViewHolder(private val context: Context?, itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener,View.OnLongClickListener {
 
         init {
-            if (clickListener != null) {
-                itemView.setOnClickListener(this)
-            }
+            itemView.setOnClickListener(this)
+            itemView.setOnLongClickListener(this)
         }
+
+//        init {
+//            if (clickListener != null) {
+//                itemView.setOnClickListener(this)
+//            }
+//            if (clickLongListener != null) {
+//                itemView.setOnLongClickListener(this)
+//            }
+//        }
 
         fun bind(device: BTDevice) {
            itemView.bt_name.text  =  device.name

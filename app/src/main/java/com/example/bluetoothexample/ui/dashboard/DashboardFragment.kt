@@ -60,12 +60,14 @@ class DashboardFragment : Fragment() {
                 view?.let {
 //                    Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
 //                    bundleOf("macaddress" to get.mac))
-                    val serviceIntent = Intent(getActivity(),SerialService::class.java)
+
+                    val intentStart = Intent(getActivity(),SerialService::class.java)
+                    intentStart.action = ACTION_START_FOREGROUND_SERVICE
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        serviceIntent.putExtra(Constants.INTENT_ACTION_START_SERVICE, "Старт сервис")
-                        activity!!.startForegroundService(serviceIntent)
+                        //serviceIntent.putExtra(Constants.INTENT_ACTION_START_SERVICE, "Старт сервис")
+                        activity!!.startForegroundService(intentStart)
                     } else {
-                         activity!!.startService(serviceIntent)
+                         activity!!.startService(intentStart)
                     }
                 };
         }})
@@ -73,8 +75,9 @@ class DashboardFragment : Fragment() {
         adapter.setOnItemClickLongListener(object : OnItemBTDeviceLongClick{
             override fun onItemBTDeviceLongClick(get: BTDevice) {
                 view?.let {
-                  val intent = Intent(getActivity(),SerialService::class.java)
-                    activity!!.stopService(intent)
+                  val intentStop = Intent(getActivity(), SerialService::class.java)
+                  intentStop.action = ACTION_STOP_FOREGROUND_SERVICE
+                  activity!!.startService(intentStop)
                  };
             }})
 
@@ -146,8 +149,11 @@ class DashboardFragment : Fragment() {
     }
 
     companion object{
-        const val  ACTION_START_FOREGROUND = "${BuildConfig.APPLICATION_ID}.startforeground"
-        const val  ACTION_STOP_FOREGROUND = "${BuildConfig.APPLICATION_ID}.stopforeground"
+        const val  ACTION_START_FOREGROUND_SERVICE  = "${BuildConfig.APPLICATION_ID}.startforegroundservice"
+        const val  ACTION_STOP_FOREGROUND_SERVICE   = "${BuildConfig.APPLICATION_ID}.stopforegroundservice"
+
+        const val  ACTION_SENT_DATA_TO_SERVER       = "${BuildConfig.APPLICATION_ID}.sentdatatoserver"
+        const val  ACTION_DISABLE_DEVICE            = "${BuildConfig.APPLICATION_ID}.disabledevice"
     }
 
 }
