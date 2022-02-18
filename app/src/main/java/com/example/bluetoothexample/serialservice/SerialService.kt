@@ -1,6 +1,9 @@
 package com.example.bluetoothexample.serialservice
 
 import android.app.*
+import android.app.PendingIntent.getActivity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -14,6 +17,8 @@ import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACT
 import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_SENT_DATA_TO_SERVER
 import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_START_FOREGROUND_SERVICE
 import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACTION_STOP_FOREGROUND_SERVICE
+import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.SERVICE_COMMAND
+import com.example.bluetoothexample.ui.dashboard.DeviceConnect
 
 
 /**
@@ -22,6 +27,9 @@ import com.example.bluetoothexample.ui.dashboard.DashboardFragment.Companion.ACT
  */
 class SerialService : Service() {
     //, SerialListener {
+
+    lateinit var  mac : String
+    lateinit var  name : String
 
     //0.тестовый обработчик action notification
     private fun showSuccessfulBroadcast(text:String) {
@@ -41,7 +49,7 @@ class SerialService : Service() {
     inner class DisableDeviceReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.action?.let{
-                 ACTION_DISABLE_DEVICE->stopForegroundService()
+                //ACTION_DISABLE_DEVICE->stopForegroundService()
                 showSuccessfulBroadcast("Отключение устройства...")
             }
         }
@@ -66,7 +74,9 @@ class SerialService : Service() {
         unregisterReceiver(disableDeviceReceiver)
     }
 
-    private fun startForegroundService() {
+    private fun startForegroundService(mac:String,name:String) {
+        this.mac=mac
+        this.name=name
         //0.
         //Android O: Как использовать каналы уведомлений
         //https://code.tutsplus.com/ru/tutorials/android-o-how-to-use-notification-channels--cms-28616
@@ -98,8 +108,8 @@ class SerialService : Service() {
         val notification: Notification = NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL)
             .setSmallIcon(R.mipmap.barcode_scanner)
             .setColor(resources.getColor(R.color.colorPrimary))
-            .setContentTitle("Наименование устройства")
-            .setContentText("Сканировано: 0")
+            .setContentTitle(name)
+            .setContentText(mac)
             .setContentIntent(restartPendingIntent)
             .addAction(
                 NotificationCompat.Action(
@@ -117,8 +127,25 @@ class SerialService : Service() {
             )
             .build()
 
-        //3.
+        //3.старт сервиса
         startForeground(1, notification)
+
+        //4.connect BT Device
+        connect()
+
+    }
+
+    private fun connect() {
+        try {
+            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(mac)
+//            status("connecting...")
+//            connected = Connected.Pending
+            val socket = SerialSocket(this, device)
+            //service.connect(socket)
+        } catch (e: Exception) {
+//            onSerialConnectError(e)
+        }
     }
 
     private fun stopForegroundService() {
@@ -129,22 +156,25 @@ class SerialService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-//        if (intent?.action.equals(ACTION_START_FOREGROUND)) {
-//            startForegroundService()
-//        }
-//        else if  (intent?.action.equals(ACTION_STOP_FOREGROUND_SERVICE)) {
-//            stopForegroundService()
-//        }
-        when (intent?.action) {
+        val deviceConnect = intent?.getParcelableExtra<DeviceConnect>(SERVICE_COMMAND)
+
+        when (deviceConnect?.action) {
+            ACTION_START_FOREGROUND_SERVICE  -> startForegroundService(deviceConnect.mac,deviceConnect.name)
             ACTION_STOP_FOREGROUND_SERVICE   -> stopForegroundService()
-            ACTION_START_FOREGROUND_SERVICE  -> startForegroundService()
             else -> return START_NOT_STICKY
         }
+        return START_STICKY
+        /*       when (intent?.action) {
+           ACTION_STOP_FOREGROUND_SERVICE   -> stopForegroundService()
+            ACTION_START_FOREGROUND_SERVICE  -> startForegroundService()
+            else -> return START_NOT_STICKY
+            }
+        */
         /*Service.START_STICKY перезапустится, если по какой-либо причине работа системы Android завершится.
        Service.START_NOT_STICKY будет работать до тех пор, пока не появятся незавершенные работы.
        Service.START_REDELIVER_INTENT похож на Service.START_STICKY, но исходное намерение повторно доставляется методу onStartCommand.
        */
-        return START_STICKY
+        //return START_STICKY
     }
 
 

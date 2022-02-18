@@ -4,14 +4,18 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -22,7 +26,6 @@ import com.example.bluetoothexample.BuildConfig
 import com.example.bluetoothexample.databinding.FragmentDashboardBinding
 import com.example.bluetoothexample.model.BTDevice
 import com.example.bluetoothexample.model.Result
-import com.example.bluetoothexample.serialservice.Constants
 import com.example.bluetoothexample.serialservice.SerialService
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,40 +47,49 @@ class DashboardFragment : Fragment() {
     ): View {
 
         val binding                  = FragmentDashboardBinding.inflate(inflater, container, false)
-        val rv: RecyclerView        = binding.rvBoundedBTDevices
-        val layoutManager           = LinearLayoutManager(getContext())
+        val rv: RecyclerView         = binding.rvBoundedBTDevices
+        val layoutManager            = LinearLayoutManager(getContext())
 
-        rv.layoutManager            = layoutManager
-        val dividerItemDecoration   = DividerItemDecoration(rv.context,layoutManager.orientation)
+        rv.layoutManager             = layoutManager
+        val dividerItemDecoration    = DividerItemDecoration(rv.context,layoutManager.orientation)
         rv.addItemDecoration(dividerItemDecoration)
 
         val adapter                         = BTDevicesAdapter(getContext(), listDev)
         binding.rvBoundedBTDevices.adapter  = adapter
 
-        //программно перейти на HomeFragment с параметром macaddress
-        adapter.setOnItemClickListener(object : OnItemBTDeviceClick{
-            override fun onItemBTDeviceClick(get: BTDevice) {
-                view?.let {
-//                    Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
-//                    bundleOf("macaddress" to get.mac))
 
-                    val intentStart = Intent(getActivity(),SerialService::class.java)
-                    intentStart.action = ACTION_START_FOREGROUND_SERVICE
+        fun getServiceIntent(command: DeviceConnect) =
+            Intent(getActivity(),SerialService::class.java).apply {
+                putExtra(SERVICE_COMMAND, command as Parcelable)
+            }
+
+        adapter.setOnItemClickListener(object : OnItemBTDeviceClick{
+            override fun onItemBTDeviceClick(device: BTDevice) {
+                view?.let {
+                    //программно перейти на HomeFragment с параметром macaddress
+                   //Navigation.findNavController(it).navigate(R.id.action_navigation_dashboard_to_navigation_home,
+                   //bundleOf("macaddress" to device.mac))
+                    val deviceConnect = DeviceConnect(device.mac, device.name,ACTION_START_FOREGROUND_SERVICE)
+//                    val intentStart = Intent(getActivity(),SerialService::class.java)
+//                    intentStart.action = ACTION_START_FOREGROUND_SERVICE
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        //serviceIntent.putExtra(Constants.INTENT_ACTION_START_SERVICE, "Старт сервис")
-                        activity!!.startForegroundService(intentStart)
+                        //activity!!.startForegroundService(intentStart)
+                        activity!!.startForegroundService(getServiceIntent(deviceConnect))
                     } else {
-                         activity!!.startService(intentStart)
+                         //activity!!.startService(intentStart)
+                        activity!!.startService(getServiceIntent(deviceConnect))
                     }
                 };
         }})
 
         adapter.setOnItemClickLongListener(object : OnItemBTDeviceLongClick{
-            override fun onItemBTDeviceLongClick(get: BTDevice) {
+            override fun onItemBTDeviceLongClick(device: BTDevice) {
                 view?.let {
-                  val intentStop = Intent(getActivity(), SerialService::class.java)
-                  intentStop.action = ACTION_STOP_FOREGROUND_SERVICE
-                  activity!!.startService(intentStop)
+                    val deviceConnect = DeviceConnect(device.mac, device.name,ACTION_STOP_FOREGROUND_SERVICE)
+                    activity!!.startService(getServiceIntent(deviceConnect))
+//                  val intentStop = Intent(getActivity(), SerialService::class.java)
+//                  intentStop.action = ACTION_STOP_FOREGROUND_SERVICE
+//                  activity!!.startService(intentStop)
                  };
             }})
 
@@ -149,6 +161,8 @@ class DashboardFragment : Fragment() {
     }
 
     companion object{
+        const val SERVICE_COMMAND                   = "Command"
+
         const val  ACTION_START_FOREGROUND_SERVICE  = "${BuildConfig.APPLICATION_ID}.startforegroundservice"
         const val  ACTION_STOP_FOREGROUND_SERVICE   = "${BuildConfig.APPLICATION_ID}.stopforegroundservice"
 

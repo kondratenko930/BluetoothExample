@@ -1,38 +1,33 @@
 package com.example.bluetoothexample.serialservice
 
 import android.Manifest
-import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.bluetooth.BluetoothSocket
-import androidx.core.app.ActivityCompat
-import android.content.pm.PackageManager
-import kotlin.Throws
-import android.content.IntentFilter
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import android.content.Context
-import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import java.io.IOException
-import java.lang.Exception
 import java.security.InvalidParameterException
 import java.util.*
 import java.util.concurrent.Executors
 
 class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
-    //private val disconnectBroadcastReceiver: BroadcastReceiver
-    private val context: Context
+
+    private lateinit var  context: Context
+    private lateinit var device: BluetoothDevice
+
     private var listener: SerialListener? = null
-    private val device: BluetoothDevice
     private var socket: BluetoothSocket? = null
     private var connected = false
 
-    // TODO: Consider calling
-    //    ActivityCompat#requestPermissions
-    // here to request the missing permissions, and then overriding
-    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-    //                                          int[] grantResults)
-    // to handle the case where the user grants the permission. See the documentation
-    // for ActivityCompat#requestPermissions for more details.
+    fun SerialSocket(context: Context?, device: BluetoothDevice?) {
+        if (context is Activity) throw InvalidParameterException("expected non UI context")
+        this.context = context!!
+        this.device = device!!
+    }
+
     val name: String
         get() = if (ActivityCompat.checkSelfPermission(
                 context,

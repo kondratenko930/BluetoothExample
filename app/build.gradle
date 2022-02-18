@@ -7,9 +7,8 @@ plugins {
     id 'dagger.hilt.android.plugin'
 
     id 'kotlin-android-extensions'
-
-    //id 'androidx.navigation.safeargs'
     id 'androidx.navigation.safeargs.kotlin'
+
 }
 
 android {
