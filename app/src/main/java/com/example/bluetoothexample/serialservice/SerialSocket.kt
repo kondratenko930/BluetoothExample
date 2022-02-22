@@ -1,19 +1,24 @@
 package com.example.bluetoothexample.serialservice
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
+import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
+import android.content.Intent
+import android.content.IntentFilter
 import java.io.IOException
 import java.security.InvalidParameterException
 import java.util.*
 import java.util.concurrent.Executors
 
+
 class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
+
+    private val BLUETOOTH_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+
+    private var disconnectBroadcastReceiver: BroadcastReceiver? = null
 
     private lateinit var  context: Context
     private lateinit var device: BluetoothDevice
@@ -22,29 +27,21 @@ class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
     private var socket: BluetoothSocket? = null
     private var connected = false
 
-    fun SerialSocket(context: Context?, device: BluetoothDevice?) {
+    init {
         if (context is Activity) throw InvalidParameterException("expected non UI context")
         this.context = context!!
         this.device = device!!
+        disconnectBroadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (listener != null) listener!!.onSerialIoError(IOException("background disconnect"))
+                disconnect() // disconnect now, else would be queued until UI re-attached
+            }
+        }
     }
 
-    val name: String
-        get() = if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            "NO PERMISSION"
-        } else {
-            if (device.name != null) device.name else device.address
-        }
+//    fun getName(): String? {
+//        return if (device.name != null) device.name else device.address
+//    }
 
     /**
      * connect-success and most connect-errors are returned asynchronously to listener
@@ -52,10 +49,7 @@ class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
     @Throws(IOException::class)
     fun connect(listener: SerialListener?) {
         this.listener = listener
-//        context.registerReceiver(
-//            disconnectBroadcastReceiver,
-//            IntentFilter(Constants.INTENT_ACTION_SENT)
-//        )
+        context.registerReceiver(disconnectBroadcastReceiver, IntentFilter(Constants.INTENT_ACTION_DISCONNECT))
         Executors.newSingleThreadExecutor().submit(this)
     }
 
@@ -69,10 +63,10 @@ class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
             }
             socket = null
         }
-//        try {
-//            context.unregisterReceiver(disconnectBroadcastReceiver)
-//        } catch (ignored: Exception) {
-//        }
+        try {
+            context.unregisterReceiver(disconnectBroadcastReceiver)
+        } catch (ignored: Exception) {
+        }
     }
 
     @Throws(IOException::class)
@@ -83,37 +77,38 @@ class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
 
     @SuppressLint("MissingPermission")
     override fun run() { // connect & read
-//        try {
-//            socket = device.createRfcommSocketToServiceRecord(BLUETOOTH_SPP)
-//            socket!!.connect()
-//            if (listener != null) listener!!.onSerialConnect()
-//        } catch (e: Exception) {
-//            if (listener != null) listener!!.onSerialConnectError(e)
-//            try {
-//                socket!!.close()
-//            } catch (ignored: Exception) {
-//            }
-//            socket = null
-//            return
-//        }
-//        connected = true
-//        try {
-//            val buffer = ByteArray(1024)
-//            var len: Int
-//            while (true) {
-//                len = socket!!.getInputStream().read(buffer)
-//                val data = Arrays.copyOf(buffer, len)
-//                if (listener != null) listener!!.onSerialRead(data)
-//            }
-//        } catch (e: Exception) {
-//            connected = false
-//            if (listener != null) listener!!.onSerialIoError(e)
-//            try {
-//                socket!!.close()
-//            } catch (ignored: Exception) {
-//            }
-//            socket = null
-//        }
+        try {
+            socket = device.createRfcommSocketToServiceRecord(BLUETOOTH_SPP)
+            socket!!.connect()
+            if (listener != null) listener!!.onSerialConnect()
+        } catch (e: Exception) {
+            if (listener != null) listener!!.onSerialConnectError(e)
+            try {
+                socket!!.close()
+            } catch (ignored: Exception) {
+            }
+            socket = null
+            return
+        }
+        connected = true
+        try {
+            val buffer = ByteArray(1024)
+            var len: Int
+            while (true) {
+                len = socket!!.getInputStream().read(buffer)
+                val data = Arrays.copyOf(buffer, len)
+                if (listener != null)
+                    listener!!.onSerialRead(data)
+            }
+        } catch (e: Exception) {
+            connected = false
+            if (listener != null) listener!!.onSerialIoError(e)
+            try {
+                socket!!.close()
+            } catch (ignored: Exception) {
+            }
+            socket = null
+        }
     }
 
     companion object {
@@ -124,11 +119,11 @@ class SerialSocket(context: Context, device: BluetoothDevice) : Runnable {
         if (context is Activity) throw InvalidParameterException("expected non UI context")
         this.context = context
         this.device = device
-//        disconnectBroadcastReceiver = object : BroadcastReceiver() {
-//            override fun onReceive(context: Context, intent: Intent) {
-//                if (listener != null) listener!!.onSerialIoError(IOException("background disconnect"))
-//                disconnect() // disconnect now, else would be queued until UI re-attached
-//            }
-//        }
+        disconnectBroadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (listener != null) listener!!.onSerialIoError(IOException("background disconnect"))
+                disconnect() // disconnect now, else would be queued until UI re-attached
+            }
+        }
     }
 }

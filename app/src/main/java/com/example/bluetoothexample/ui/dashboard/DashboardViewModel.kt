@@ -19,6 +19,10 @@ class DashboardViewModel @Inject constructor(private val mainRepository: MainRep
 
     val devicesUsingFlow: LiveData<Result<BoundedBTDevicesResponse>> = mainRepository.devicesFlow.asLiveData()
 
+    val currentState: MutableLiveData<String> by lazy {
+        MutableLiveData<String>()
+    }
+
 //    init {
 //        getDevices()
 //    }
